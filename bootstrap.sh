@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # set real user home cos this script gets executed under sudo
-$USR_HOME='/home/ubuntu'
+USR_HOME='/home/ubuntu'
 
 # can't remember what this does but it looks important
 sudo cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
