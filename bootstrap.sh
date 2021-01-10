@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# https://stackoverflow.com/a/7359006/4396258
+SUDO_USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+
 # can't remember what this does but it looks important
 cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
 net.bridge.bridge-nf-call-iptables = 1
@@ -88,12 +91,15 @@ apt-mark hold kubelet kubeadm kubectl
 # https://coreos.com/flannel/docs/latest/kubernetes.html
 kubeadm init --pod-network-cidr=10.244.0.0/16
 
-# drop out of sudo
-su - "$SUDO_USER"
-
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+
+# doing this so the caller of the script can run kubectl commands
+# this is disgusting sorry
+mkdir -p $SUDO_USER_HOME/.kube
+cp -i /etc/kubernetes/admin.conf $SUDO_USER_HOME/.kube/config
+chown $(id -u):$(id -g) $SUDO_USER_HOME/.kube/config
 
 # ==============================================================================
 # Install flannel
@@ -120,7 +126,7 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 # do things cheap but as real as possible here)
 # https://stackoverflow.com/a/56998424/4396258
 # ==============================================================================
-NGINX_FILE="${HOME}/nginx-ingress.yaml"
+NGINX_FILE="${SUDO_USER_HOME}/nginx-ingress.yaml"
 curl -L https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/deploy.yaml > $NGINX_FILE
 sed -i '/dnsPolicy\: ClusterFirst$/ s:$:\n      hostNetwork\: true:' "$NGINX_FILE"
 kubectl apply -f "$NGINX_FILE"
@@ -129,7 +135,7 @@ kubectl apply -f "$NGINX_FILE"
 # ==============================================================================
 # Create hello world app
 # ==============================================================================
-cat > "${HOME}/hello-k8s.yaml" <<EOF
+cat > "${SUDO_USER_HOME}/hello-k8s.yaml" <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -161,13 +167,13 @@ spec:
         ports:
         - containerPort: 8080
 EOF
-kubectl apply -f "${HOME}/hello-k8s.yaml"
+kubectl apply -f "${SUDO_USER_HOME}/hello-k8s.yaml"
 
 
 # ==============================================================================
 # Create ingress
 # ==============================================================================
-cat > "${HOME}/ingress.yaml" <<EOF
+cat > "${SUDO_USER_HOME}/ingress.yaml" <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -189,7 +195,7 @@ spec:
             port:
               number: 3000
 EOF
-kubectl apply -f "${HOME}/ingress.yaml"
+kubectl apply -f "${SUDO_USER_HOME}/ingress.yaml"
 
 echo <<EOF
 Done!
