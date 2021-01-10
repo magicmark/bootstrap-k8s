@@ -9,5 +9,5 @@ Works with ubuntu 20.x
 ```bash
 curl -L https://raw.githubusercontent.com/magicmark/bootstrap-k8s/main/bootstrap.sh > bootstrap.sh
 chmod +x bootstrap.sh
-./bootstrap.sh # warning - uses sudo. use at your own risk.
+sudo ./bootstrap.sh # warning - uses sudo. use at your own risk.
 ```
