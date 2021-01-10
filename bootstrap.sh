@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# set real user home cos this script gets executed under sudo
+$USR_HOME='/home/ubuntu'
+
 # can't remember what this does but it looks important
 sudo cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
 net.bridge.bridge-nf-call-iptables = 1
@@ -88,9 +91,9 @@ sudo apt-mark hold kubelet kubeadm kubectl
 # https://coreos.com/flannel/docs/latest/kubernetes.html
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+mkdir -p $USR_HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $USR_HOME/.kube/config
+sudo chown $(id -u):$(id -g) $USR_HOME/.kube/config
 
 # ==============================================================================
 # Install flannel
