@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # can't remember what this does but it looks important
-cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
+sudo cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 
