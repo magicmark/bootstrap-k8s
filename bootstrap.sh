@@ -199,6 +199,8 @@ spec:
               number: 3000
 EOF
 chown "$SUDO_USER" "${SUDO_USER_HOME}/ingress.yaml"
+echo "Sleeping for 15 seconds cos otherwise this next command fails..."
+sleep 15
 sudo -u "$SUDO_USER" kubectl apply -f "${SUDO_USER_HOME}/ingress.yaml"
 
 
