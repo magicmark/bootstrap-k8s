@@ -119,7 +119,7 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 # do things cheap but as real as possible here)
 # https://stackoverflow.com/a/56998424/4396258
 # ==============================================================================
-NGINX_FILE="${HOME}/nginx-ingress.yaml"
+NGINX_FILE="${USR_HOME}/nginx-ingress.yaml"
 curl -L https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/deploy.yaml > $NGINX_FILE
 sed -i '/dnsPolicy\: ClusterFirst$/ s:$:\n      hostNetwork\: true:' "$NGINX_FILE"
 kubectl apply -f "$NGINX_FILE"
@@ -127,14 +127,14 @@ kubectl apply -f "$NGINX_FILE"
 # ==============================================================================
 # Create hello world app
 # ==============================================================================
-cat > "${HOME}/hello-k8s.yaml" <<EOF
+cat > "${USR_HOME}/hello-k8s.yaml" <<EOF
 apiVersion: v1
 kind: Service
 metadata:
   name: hello-kubernetes
 spec:
   ports:
-  - port: 80
+  - port: 3000
     targetPort: 8080
   selector:
     app: hello-kubernetes
@@ -159,12 +159,12 @@ spec:
         ports:
         - containerPort: 8080
 EOF
-kubectl apply -f "${HOME}/hello-k8s.yaml"
+kubectl apply -f "${USR_HOME}/hello-k8s.yaml"
 
 # ==============================================================================
 # Create ingress
 # ==============================================================================
-cat > "${HOME}/ingress.yaml" <<EOF
+cat > "${USR_HOME}/ingress.yaml" <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -184,5 +184,6 @@ spec:
           service:
             name: hello-kubernetes
             port:
-              number: 80
+              number: 3000
 EOF
+kubectl apply -f "${USR_HOME}/ingress.yaml"
