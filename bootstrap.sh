@@ -1,9 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# set real user home cos this script gets executed under sudo
-USR_HOME='/home/ubuntu'
-
 # can't remember what this does but it looks important
 sudo cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
 net.bridge.bridge-nf-call-iptables = 1
@@ -91,9 +88,9 @@ sudo apt-mark hold kubelet kubeadm kubectl
 # https://coreos.com/flannel/docs/latest/kubernetes.html
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 
-mkdir -p $USR_HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $USR_HOME/.kube/config
-sudo chown $(id -u):$(id -g) $USR_HOME/.kube/config
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 # ==============================================================================
 # Install flannel
@@ -119,7 +116,7 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 # do things cheap but as real as possible here)
 # https://stackoverflow.com/a/56998424/4396258
 # ==============================================================================
-NGINX_FILE="${USR_HOME}/nginx-ingress.yaml"
+NGINX_FILE="${HOME}/nginx-ingress.yaml"
 curl -L https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/baremetal/deploy.yaml > $NGINX_FILE
 sed -i '/dnsPolicy\: ClusterFirst$/ s:$:\n      hostNetwork\: true:' "$NGINX_FILE"
 kubectl apply -f "$NGINX_FILE"
@@ -127,7 +124,7 @@ kubectl apply -f "$NGINX_FILE"
 # ==============================================================================
 # Create hello world app
 # ==============================================================================
-cat > "${USR_HOME}/hello-k8s.yaml" <<EOF
+cat > "${HOME}/hello-k8s.yaml" <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -159,12 +156,12 @@ spec:
         ports:
         - containerPort: 8080
 EOF
-kubectl apply -f "${USR_HOME}/hello-k8s.yaml"
+kubectl apply -f "${HOME}/hello-k8s.yaml"
 
 # ==============================================================================
 # Create ingress
 # ==============================================================================
-cat > "${USR_HOME}/ingress.yaml" <<EOF
+cat > "${HOME}/ingress.yaml" <<EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -186,4 +183,4 @@ spec:
             port:
               number: 3000
 EOF
-kubectl apply -f "${USR_HOME}/ingress.yaml"
+kubectl apply -f "${HOME}/ingress.yaml"
